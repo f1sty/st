@@ -2163,6 +2163,28 @@ tstrsequence(uchar c)
 }
 
 void
+tupdatebgcolor(int oldbg, int newbg)
+{
+	for (int y = 0; y < term.row; y++) {
+		for (int x = 0; x < term.col; x++) {
+			if (term.line[y][x].bg == oldbg)
+				term.line[y][x].bg = newbg;
+		}
+	}
+}
+
+void
+tupdatefgcolor(int oldfg, int newfg)
+{
+	for (int y = 0; y < term.row; y++) {
+		for (int x = 0; x < term.col; x++) {
+			if (term.line[y][x].fg == oldfg)
+				term.line[y][x].fg = newfg;
+		}
+	}
+}
+
+void
 tcontrolcode(uchar ascii)
 {
 	switch (ascii) {
@@ -2640,7 +2662,8 @@ draw(void)
 
 	drawregion(0, 0, term.col, term.row);
 	xdrawcursor(cx, term.c.y, term.line[term.c.y][cx],
-			term.ocx, term.ocy, term.line[term.ocy][term.ocx]);
+			term.ocx, term.ocy, term.line[term.ocy][term.ocx],
+			term.line[term.ocy], term.col);
 	term.ocx = cx;
 	term.ocy = term.c.y;
 	xfinishdraw();
