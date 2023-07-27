@@ -201,6 +201,7 @@ static void tdefutf8(char);
 static int32_t tdefcolor(const int *, int *, int);
 static void tdeftran(char);
 static void tstrsequence(uchar);
+static char **findurls(const char *);
 
 static void drawregion(int, int, int, int);
 
@@ -2169,6 +2170,68 @@ tstrsequence(uchar c)
 	strreset();
 	strescseq.type = c;
 	term.esc |= ESC_STR;
+}
+
+static char **findurls(const char *str) {
+  static const char url_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                  "abcdefghijklmnopqrstuvwxyz"
+                                  "0123456789-._~:/?#@!$&'*+,;=%[]";
+
+  char *url_start_patterns[] = {"https://", "http://", NULL};
+  char *url = calloc(sizeof(char), 256);
+  char **urls = calloc(sizeof(unsigned int), term.bot);
+  unsigned int j = 0;
+
+  for (int i = 0; url_start_patterns[i] != NULL; i++) {
+    size_t url_len = 0;
+    char *url_str = xstrdup(str);
+    char *url_start_pattern = url_start_patterns[i];
+
+    while ((url_str = strstr(url_str, url_start_pattern)) != NULL) {
+      url_len = strspn(url_str, url_chars);
+      strncpy(url, url_str, url_len);
+      url[url_len] = '\0';
+      urls[j] = url;
+      url_str += url_len;
+      j += 1;
+    }
+  }
+
+  return urls;
+}
+
+void select_urls(const Arg *arg) {
+  int row = term.top, row_end = term.bot, col = 0, col_end = term.col;
+  int rows = term.bot - row;
+  int cols = col_end - col;
+  char str[(rows + 1) * (cols + 1)];
+  for (row = term.top; row < row_end; row++) {
+    for (col = 0; col < col_end; col++)
+      str[row * col_end + col] = term.line[row][col].u < 128 ? term.line[row][col].u : ' ';
+    str[row * col_end + col] = '\n';
+  }
+  str[row * col_end + col] = '\0';
+
+  char **urls = findurls(str);
+  char *urls_str = calloc(sizeof(char), term.bot * 256);
+
+  for (int i = 0; urls[i] != NULL; i++) {
+    printf("%s\n", urls[i]);
+    strcat(urls_str, urls[i]);
+    strcat(urls_str, "\\n");
+  }
+
+  /* ttywrite(urls_str, strlen(urls_str), 1); */
+  char *cmd_str = calloc(sizeof(char), term.bot * 256 + 30);
+
+  sprintf(cmd_str, "xdg-open $(echo -en '%s' | fzf)\n", urls_str);
+  ttywrite(cmd_str, strlen(cmd_str), 1);
+
+
+  /* for (int i = 0; urls[i] != NULL; i++) { */
+  /*   strncat(open_cmd, urls[i], 256); */
+  /*   ttywrite(open_cmd, strlen(urls[i]), 1); */
+  /* } */
 }
 
 void

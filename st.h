@@ -19,6 +19,7 @@
 
 #define TRUECOLOR(r,g,b)	(1 << 24 | (r) << 16 | (g) << 8 | (b))
 #define IS_TRUECOL(x)		(1 << 24 & (x))
+#define URL_MENU(items)         ("xdp-open $(echo -e 'items' | fzf)")
 
 enum glyph_attribute {
 	ATTR_NULL       = 0,
@@ -85,6 +86,7 @@ void printscreen(const Arg *);
 void printsel(const Arg *);
 void sendbreak(const Arg *);
 void toggleprinter(const Arg *);
+void select_urls(const Arg *);
 
 int tattrset(int);
 void tnew(int, int);
