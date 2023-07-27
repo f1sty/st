@@ -86,7 +86,7 @@ void printscreen(const Arg *);
 void printsel(const Arg *);
 void sendbreak(const Arg *);
 void toggleprinter(const Arg *);
-void select_urls(const Arg *);
+void urls_menu(const Arg *);
 
 int tattrset(int);
 void tnew(int, int);
