@@ -2173,15 +2173,8 @@ tstrsequence(uchar c)
 }
 
 static char **find_urls(const char *str) {
-  static const char url_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                  "abcdefghijklmnopqrstuvwxyz"
-                                  "0123456789-._~:/?#@!$&'*+,;=%[]";
+  char **urls = calloc(sizeof(**urls), term.bot); // assume max amount of urls is term.bot (one for each term row)
 
-  char *url_start_patterns[] = {"https://", "http://", NULL};
-  /* assume max amount of urls is term.bot (one for each term row) */
-  char **urls = calloc(sizeof(**urls), term.bot);
-
-  printf("%s", str);
   for (int i = 0, j = 0; url_start_patterns[i] != NULL; i++) {
     size_t url_len = 0;
     const char *url_str = str;

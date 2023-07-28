@@ -47,6 +47,12 @@ int allowaltscreen = 1;
    setting the clipboard text */
 int allowwindowops = 0;
 
+/* fzf-url-menu options */
+char *url_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                "abcdefghijklmnopqrstuvwxyz"
+                                "0123456789-._~:/?#@!$&'*+,;=%[]";
+char *url_start_patterns[] = {"https://", "http://", NULL};
+
 /*
  * draw latency range in ms - from new content/keypress/etc until drawing.
  * within this range, st draws when content stops arriving (idle). mostly it's

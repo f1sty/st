@@ -121,6 +121,8 @@ extern char *vtiden;
 extern wchar_t *worddelimiters;
 extern int allowaltscreen;
 extern int allowwindowops;
+extern char *url_chars;
+extern char *url_start_patterns[];
 extern char *termname;
 extern unsigned int tabspaces;
 extern unsigned int defaultfg;
