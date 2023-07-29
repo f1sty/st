@@ -1,0 +1,145 @@
+diff --git a/config.def.h b/config.def.h
+index 91ab8ca..4a5d257 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -47,6 +47,12 @@ int allowaltscreen = 1;
+    setting the clipboard text */
+ int allowwindowops = 0;
+ 
++/* fzf-url-menu options */
++char *url_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
++                                "abcdefghijklmnopqrstuvwxyz"
++                                "0123456789-._~:/?#@!$&'*+,;=%[]";
++char *url_start_patterns[] = {"https://", "http://", NULL};
++
+ /*
+  * draw latency range in ms - from new content/keypress/etc until drawing.
+  * within this range, st draws when content stops arriving (idle). mostly it's
+@@ -199,6 +205,7 @@ static Shortcut shortcuts[] = {
+ 	{ TERMMOD,              XK_C,           clipcopy,       {.i =  0} },
+ 	{ TERMMOD,              XK_V,           clippaste,      {.i =  0} },
+ 	{ TERMMOD,              XK_Y,           selpaste,       {.i =  0} },
++	{ TERMMOD,              XK_L,           urls_menu,      {.i =  0} },
+ 	{ ShiftMask,            XK_Insert,      selpaste,       {.i =  0} },
+ 	{ TERMMOD,              XK_Num_Lock,    numlock,        {.i =  0} },
+ };
+diff --git a/config.h b/config.h
+index bcaec21..73f2548 100644
+--- a/config.h
++++ b/config.h
+@@ -47,6 +47,12 @@ int allowaltscreen = 1;
+    setting the clipboard text */
+ int allowwindowops = 0;
+ 
++/* fzf-url-menu options */
++char *url_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
++                                "abcdefghijklmnopqrstuvwxyz"
++                                "0123456789-._~:/?#@!$&'*+,;=%[]";
++char *url_start_patterns[] = {"https://", "http://", NULL};
++
+ /*
+  * draw latency range in ms - from new content/keypress/etc until drawing.
+  * within this range, st draws when content stops arriving (idle). mostly it's
+@@ -199,6 +205,7 @@ static Shortcut shortcuts[] = {
+ 	{ TERMMOD,              XK_C,           clipcopy,       {.i =  0} },
+ 	{ TERMMOD,              XK_V,           clippaste,      {.i =  0} },
+ 	{ TERMMOD,              XK_Y,           selpaste,       {.i =  0} },
++	{ TERMMOD,              XK_L,           urls_menu,      {.i =  0} },
+ 	{ ShiftMask,            XK_Insert,      selpaste,       {.i =  0} },
+ 	{ TERMMOD,              XK_Num_Lock,    numlock,        {.i =  0} },
+ };
+diff --git a/st.c b/st.c
+index 623376e..93a5b50 100644
+--- a/st.c
++++ b/st.c
+@@ -201,6 +201,7 @@ static void tdefutf8(char);
+ static int32_t tdefcolor(const int *, int *, int);
+ static void tdeftran(char);
+ static void tstrsequence(uchar);
++static char **find_urls(const char *);
+ 
+ static void drawregion(int, int, int, int);
+ 
+@@ -2171,6 +2172,61 @@ tstrsequence(uchar c)
+ 	term.esc |= ESC_STR;
+ }
+ 
++static char **find_urls(const char *str) {
++  char **urls = calloc(sizeof(**urls), term.bot); // assume max amount of urls is term.bot (one for each term row)
++
++  for (int i = 0, j = 0; url_start_patterns[i] != NULL; i++) {
++    size_t url_len = 0;
++    const char *url_str = str;
++    char *url_start_pattern = url_start_patterns[i];
++
++    while ((url_str = strstr(url_str, url_start_pattern)) != NULL) {
++      url_len = strspn(url_str, url_chars);
++      char *url = calloc(sizeof(*url), 256); // max URI length 255 chars
++      strncpy(url, url_str, url_len);
++      url[url_len] = '\0';
++      urls[j] = url;
++      url_str += url_len;
++      j += 1;
++    }
++  }
++
++  return urls;
++}
++
++void urls_menu(const Arg *dummy) {
++  int row = term.top, col = 0;
++  char screen_buf[(term.bot - term.top + 1) * term.col + 1];
++
++  for (; row <= term.bot; row++) {
++    for (col = 0; col < term.col; col++)
++      screen_buf[row * term.col + col] = term.line[row][col].u < 128 ? term.line[row][col].u : ' ';
++    screen_buf[row * term.col + col] = '\n';
++  }
++  screen_buf[row * term.col + col] = '\0';
++
++  char **urls = find_urls(screen_buf);
++  char *urls_str = calloc(sizeof(*urls_str), term.bot * 258);
++
++  for (size_t i = 0; urls[i] != NULL; i++) {
++    strcat(urls_str, urls[i]);
++    strcat(urls_str, "\\n");
++  }
++
++  char *cmd_str = calloc(sizeof(*cmd_str), term.bot * 258 + 30);
++
++  snprintf(cmd_str, term.bot * 258 + 30, "xdg-open $(echo -en '%s' | fzf)\n", urls_str);
++  ttywrite(cmd_str, strlen(cmd_str), 0);
++
++  free(urls_str);
++  free(cmd_str);
++
++  for (size_t i = 0; urls[i] != NULL; i++) {
++    free(urls[i]);
++  }
++  free(urls);
++}
++
+ void
+ tcontrolcode(uchar ascii)
+ {
+diff --git a/st.h b/st.h
+index fd3b0d8..7df6f97 100644
+--- a/st.h
++++ b/st.h
+@@ -85,6 +85,7 @@ void printscreen(const Arg *);
+ void printsel(const Arg *);
+ void sendbreak(const Arg *);
+ void toggleprinter(const Arg *);
++void urls_menu(const Arg *);
+ 
+ int tattrset(int);
+ void tnew(int, int);
+@@ -119,6 +120,8 @@ extern char *vtiden;
+ extern wchar_t *worddelimiters;
+ extern int allowaltscreen;
+ extern int allowwindowops;
++extern char *url_chars;
++extern char *url_start_patterns[];
+ extern char *termname;
+ extern unsigned int tabspaces;
+ extern unsigned int defaultfg;
