@@ -2182,8 +2182,7 @@ static char **find_urls(const char *str) {
 
     while ((url_str = strstr(url_str, url_start_pattern)) != NULL) {
       url_len = strspn(url_str, url_chars);
-      /* max URI length 255 chars */
-      char *url = calloc(sizeof(*url), 256);
+      char *url = calloc(sizeof(*url), 256); // max URI length 255 chars
       strncpy(url, url_str, url_len);
       url[url_len] = '\0';
       urls[j] = url;
@@ -2214,7 +2213,6 @@ void urls_menu(const Arg *dummy) {
     strcat(urls_str, "\\n");
   }
 
-  /* ttywrite(urls_str, strlen(urls_str), 1); */
   char *cmd_str = calloc(sizeof(*cmd_str), term.bot * 258 + 30);
 
   snprintf(cmd_str, term.bot * 258 + 30, "xdg-open $(echo -en '%s' | fzf)\n", urls_str);

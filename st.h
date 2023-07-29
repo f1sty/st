@@ -19,7 +19,6 @@
 
 #define TRUECOLOR(r,g,b)	(1 << 24 | (r) << 16 | (g) << 8 | (b))
 #define IS_TRUECOL(x)		(1 << 24 & (x))
-#define URL_MENU(items)         ("xdp-open $(echo -e 'items' | fzf)")
 
 enum glyph_attribute {
 	ATTR_NULL       = 0,
