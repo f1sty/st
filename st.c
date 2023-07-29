@@ -2217,6 +2217,14 @@ void urls_menu(const Arg *dummy) {
 
   snprintf(cmd_str, term.bot * 258 + 30, "xdg-open $(echo -en '%s' | fzf)\n", urls_str);
   ttywrite(cmd_str, strlen(cmd_str), 0);
+
+  free(urls_str);
+  free(cmd_str);
+
+  for (size_t i = 0; urls[i] != NULL; i++) {
+    free(urls[i]);
+  }
+  free(urls);
 }
 
 void
