@@ -5,7 +5,7 @@
  *
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html
  */
-static char *font = "Liberation Mono:pixelsize=12:antialias=true:autohint=true";
+static char *font = "RobotoMono Nerd Font:size=12:antialias=true:autohint=true";
 static int borderpx = 2;
 
 /*
@@ -60,7 +60,7 @@ static double maxlatency = 33;
  * blinking timeout (set to 0 to disable blinking) for the terminal blinking
  * attribute.
  */
-static unsigned int blinktimeout = 800;
+static unsigned int blinktimeout = 700;
 
 /*
  * thickness of underline and bar cursors
@@ -118,10 +118,10 @@ static const char *colorname[] = {
 	[255] = 0,
 
 	/* more colors can be added after 255 to use with DefaultXX */
-	"#cccccc",
+	"#256c20",
 	"#555555",
 	"gray90", /* default foreground colour */
-	"black", /* default background colour */
+	"#181818", /* default background colour */
 };
 
 
